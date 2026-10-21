@@ -1,0 +1,46 @@
+# auto-pr-dev abre un PR contra dev al subir una rama feature/*, si aun no existe
+name: PR automatico a dev
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: write
+
+jobs:
+  open-pr:
+    name: Abrir PR contra dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crear el PR si no existe
+        env:
+          BRANCH: ${{ github.ref_name }}
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OPEN_PRS=$(gh pr list --base dev --head "$BRANCH" --state open --json number --jq 'length')
+          if [ "$OPEN_PRS" != "0" ]; then
+            echo "Ya hay un PR abierto de $BRANCH contra dev"
+            exit 0
+          fi
+
+          AHEAD=$(gh api "repos/$GH_REPO/compare/dev...$BRANCH" --jq '.ahead_by')
+          if [ "$AHEAD" = "0" ]; then
+            echo "$BRANCH no tiene commits nuevos respecto a dev"
+            exit 0
+          fi
+
+          # La rama sigue el formato feature/<numero-issue>-<descripcion>
+          ISSUE=$(echo "$BRANCH" | sed -nE 's#^feature/([0-9]+)-.*#\1#p')
+          TITLE="$BRANCH"
+          BODY="PR creado automaticamente desde $BRANCH."
+          if [ -n "$ISSUE" ]; then
+            TITLE=$(gh issue view "$ISSUE" --json title --jq '.title') || TITLE="$BRANCH"
+            BODY="Closes #$ISSUE"
+          fi
+
+          gh api "repos/$GH_REPO/pulls" -f base=dev -f head="$BRANCH" -f title="$TITLE" -f body="$BODY" --jq '.html_url'

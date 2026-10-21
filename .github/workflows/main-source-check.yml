@@ -1,0 +1,27 @@
+# main-source-check falla si un PR a main no viene de la rama dev de este repositorio
+name: Origen del PR a main
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, edited]
+
+permissions: {}
+
+jobs:
+  check-source:
+    name: Solo dev puede mergear en main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comprobar la rama de origen
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REF" != "dev" ] || [ "$HEAD_REPO" != "$REPO" ]; then
+            echo "::error::Los PRs a main solo pueden venir de dev (origen: $HEAD_REPO:$HEAD_REF)"
+            exit 1
+          fi
+          echo "Origen correcto: dev"

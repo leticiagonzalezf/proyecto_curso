@@ -59,6 +59,21 @@ Stack: React 18, TypeScript en modo `strict`, Vite y Material UI 6, con `fetch` 
 - Cada fallo lanza `AiIceServiceError` con un mensaje para el usuario. `useIceSuggestion` expone `loading`, `error: string | null` y `suggestion`, los reinicia al empezar, devuelve `null` si falla y cambia los errores desconocidos por un mensaje genérico. Sigue este patrón en cualquier operación asíncrona nueva.
 - La IA solo sugiere: el usuario siempre puede ajustar los valores a mano, y la tarea no se guarda sin los tres valores ICE.
 
+## Flujo de git
+
+Git flow simplificado sobre `leticiagonzalezf/proyecto_curso`, con dos ramas permanentes:
+
+- `dev`: rama por defecto y de integración. Todo el trabajo entra por PR.
+- `main`: versión estable. Solo recibe PRs desde `dev`; lo exige el workflow `Origen del PR a main`.
+- Las dos están protegidas: sin push directo, force push ni borrado, y no se puede mergear con conversaciones sin resolver ni con conflictos.
+
+Para trabajar una issue:
+
+1. Actualiza `dev` (`git switch dev && git pull`) y crea desde ella `feature/<numero-issue>-<descripcion-corta>`, por ejemplo `feature/12-filtrar-tareas`.
+2. Haz los commits, pasa `npm run check` y sube la rama con `git push -u origin <rama>`. El workflow `PR automatico a dev` abre un PR contra `dev` con el título de la issue y `Closes #<numero>`.
+3. Si abres el PR a mano, su base es siempre `dev`, nunca `main`.
+4. Para publicar una versión, abre un PR de `dev` a `main`.
+
 ## Convenciones
 
 - Identificadores en inglés. Textos de la UI, mensajes de error y comentarios en español **sin tildes ni ñ** (`Titulo`, `Aun no tienes tareas`, `anade`). Única excepción: el prompt que se envía a Gemini.
